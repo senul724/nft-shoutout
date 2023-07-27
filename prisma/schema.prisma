@@ -2,16 +2,35 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model User {
+  address     String       @id
+  signature   String
+  collections Collection[]
+}
+
+model Collection {
+  address      String    @id
+  messages     Message[]
+  owner        User      @relation(fields: [ownerAddress], references: [address])
+  ownerAddress String
+
+  @@index([ownerAddress])
+}
+
+model Message {
+  id                String     @id @default(cuid())
+  createdAt         DateTime   @default(now())
+  collection        Collection @relation(fields: [collectionAddress], references: [address])
+  collectionAddress String
+
+  @@index([collectionAddress])
 }
