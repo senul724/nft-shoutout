@@ -14,23 +14,26 @@ datasource db {
 model User {
   address     String       @id
   signature   String
+  user_name   String?
   collections Collection[]
 }
 
 model Collection {
-  address      String    @id
-  messages     Message[]
-  owner        User      @relation(fields: [ownerAddress], references: [address])
-  ownerAddress String
+  address         String    @id
+  collection_name String?
+  messages        Message[]
+  owner           User      @relation(fields: [owner_address], references: [address])
+  owner_address   String
 
-  @@index([ownerAddress])
+  @@index([owner_address])
 }
 
 model Message {
-  id                String     @id @default(cuid())
-  createdAt         DateTime   @default(now())
-  collection        Collection @relation(fields: [collectionAddress], references: [address])
-  collectionAddress String
+  id                 String     @id @default(cuid())
+  content            String
+  createdAt          DateTime   @default(now())
+  collection         Collection @relation(fields: [collection_address], references: [address])
+  collection_address String
 
-  @@index([collectionAddress])
+  @@index([collection_address])
 }
