@@ -1,0 +1,203 @@
+import { Dialog, Transition } from "@headlessui/react";
+import { Form, Formik } from "formik";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
+import { Dispatch, Fragment, SetStateAction, useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import CustomSelectComponent from "src/components/forms/custom-select-component";
+import { CoinbaseIcon } from "src/components/icons/coinbase";
+import { FortmaticIcon } from "src/components/icons/fortmatic";
+import { MetamaskIcon } from "src/components/icons/metamask";
+import { AvailableWallets } from "src/types/web3";
+import { getErrorMsg } from "~/data/error-list";
+import { onBoard } from "./on-board";
+import { walletNotFound } from "./prompt-payload";
+
+const Modal = dynamic(() =>
+  import("src/components/utils/modal").then(
+    (mod) => mod.Modal,
+  )
+);
+
+export const ConnectWallet = (props: {
+  connectWalletOpen: boolean;
+  firstRender: boolean;
+  setConnectWalletOpen: Dispatch<SetStateAction<boolean>>;
+  setFirstRender: Dispatch<SetStateAction<boolean>>;
+  setLoading: Dispatch<SetStateAction<boolean>>;
+}) => {
+  const {
+    connectWalletOpen,
+    firstRender,
+    setConnectWalletOpen,
+    setFirstRender,
+    setLoading,
+  } = props;
+
+  const router = useRouter();
+
+  useEffect(
+    () => {
+      firstRender ? (setFirstRender(false), setLoading(false)) : null;
+    },
+    // eslint-disable-next-line
+    [],
+  );
+
+  const [openNotFound, setOpenNotFound] = useState<boolean>(false);
+  const [ongoing, setOngoing] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState<AvailableWallets>("1");
+
+  const closeModal = () => {
+    setConnectWalletOpen(false);
+  };
+  const initialValues: { wallet: undefined | AvailableWallets } = {
+    wallet: undefined,
+  };
+
+  return (
+    <div>
+      <Transition appear show={connectWalletOpen} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => {
+            !ongoing && !openNotFound && setConnectWalletOpen(false);
+          }}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="overflow-y-auto fixed inset-0">
+            <div className="flex justify-center items-center p-4 min-h-full text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="overflow-hidden p-6 w-full max-w-md text-left align-middle bg-white rounded-2xl shadow-xl transition-all transform">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <Formik
+                      initialValues={initialValues}
+                      onSubmit={async (values) => {
+                        const { wallet } = values;
+                        if (!wallet) {
+                          setOngoing(false);
+                          return toast.error(
+                            "Please select a wallet to get started",
+                          );
+                        }
+                        setOngoing(true);
+                        const { account, token, walletFound } = await onBoard(
+                          wallet as AvailableWallets,
+                        );
+
+                        if (!walletFound) {
+                          setSelectedWallet(wallet as AvailableWallets);
+                          setOpenNotFound(true);
+                          setOngoing(false);
+                          return;
+                        }
+
+                        if (!account || !token) {
+                          toast.error(getErrorMsg("sww"));
+                          setConnectWalletOpen(false);
+                        }
+                        setConnectWalletOpen(false);
+                      }}
+                    >
+                      {({ isSubmitting }) => (
+                        <Form>
+                          <div className="p-4 bg-white rounded-xl sm:p-6">
+                            <h5 className="mb-3 text-base font-semibold text-gray-900 md:text-xl">
+                              Select wallet
+                            </h5>
+                            <ul className="my-4 space-y-3">
+                              <li>
+                                <CustomSelectComponent
+                                  icon={<MetamaskIcon />}
+                                  isPopular={true}
+                                  name="wallet"
+                                  label="MetaMask"
+                                  value="1"
+                                  type="radio"
+                                />
+                              </li>
+                              <li>
+                                <CustomSelectComponent
+                                  icon={<FortmaticIcon />}
+                                  isPopular={false}
+                                  name="wallet"
+                                  label="Fortmatic"
+                                  value="2"
+                                  type="radio"
+                                />
+                              </li>
+                              <li>
+                                <CustomSelectComponent
+                                  icon={<CoinbaseIcon />}
+                                  isPopular={false}
+                                  name="wallet"
+                                  label="Coinbase Wallet"
+                                  value="3"
+                                  type="radio"
+                                />
+                              </li>
+                            </ul>
+                            <button
+                              type="submit"
+                              className="py-1 mt-4 w-full text-2xl font-semibold text-white bg-emerald-500 rounded-xl shadow-xl hover:scale-105"
+                              disabled={isSubmitting}
+                            >
+                              <h3>Connect</h3>
+                            </button>
+                          </div>
+                        </Form>
+                      )}
+                    </Formik>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+      {openNotFound
+        ? (
+          <Modal
+            modalOpen={openNotFound}
+            setModalOpen={setOpenNotFound}
+            buttons={walletNotFound(selectedWallet, router.route)}
+            alertTitle={"Wallet not found"}
+            alertBody={
+              <p className="text-sm text-gray-500">
+                Please download the wallet or open the mobile wallet if available. Paste the link in the app browser if
+                and error occur.
+                <br />
+                Reload and retry if this is mistake.
+              </p>
+            }
+          />
+        )
+        : null}
+    </div>
+  );
+};
