@@ -10,6 +10,7 @@ import { FortmaticIcon } from "src/components/icons/fortmatic";
 import { MetamaskIcon } from "src/components/icons/metamask";
 import { AvailableWallets } from "src/types/web3";
 import { getErrorMsg } from "~/data/error-list";
+import { api } from "~/utils/api";
 import { onBoard } from "./on-board";
 import { walletNotFound } from "./prompt-payload";
 
@@ -47,6 +48,8 @@ export const ConnectWallet = (props: {
   const [openNotFound, setOpenNotFound] = useState<boolean>(false);
   const [ongoing, setOngoing] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<AvailableWallets>("1");
+
+  const { mutateAsync: loginIn } = api.auth.login.useMutation();
 
   const closeModal = () => {
     setConnectWalletOpen(false);
@@ -120,7 +123,9 @@ export const ConnectWallet = (props: {
                         if (!account || !token) {
                           toast.error(getErrorMsg("sww"));
                           setConnectWalletOpen(false);
+                          return;
                         }
+                        await loginIn({ address: account, signature: token });
                         setConnectWalletOpen(false);
                       }}
                     >
