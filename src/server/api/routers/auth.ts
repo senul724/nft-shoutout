@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { setCookie } from "cookies-next";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { env } from "~/env.mjs";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const authRouter = createTRPCRouter({
@@ -47,7 +48,16 @@ export const authRouter = createTRPCRouter({
         const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
           expiresIn: "1d",
         });
-        setCookie("_session2", token);
+
+        // setCookie("_session2", token);
+        setCookie("_session2", token, {
+          req: ctx.req,
+          res: ctx.res,
+          maxAge: 60 * 24,
+          path: "/",
+          secure: env.NODE_ENV === "production",
+          httpOnly: true,
+        });
         console.log(token);
       } catch {
         throw new TRPCError({ code: "PRECONDITION_FAILED" });
