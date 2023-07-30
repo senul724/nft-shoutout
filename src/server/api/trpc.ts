@@ -1,17 +1,10 @@
-/**
- * YOU PROBABLY DON'T NEED TO EDIT THIS FILE, UNLESS:
- * 1. You want to modify request context (see Part 1).
- * 2. You want to create a new middleware or type of procedure (see Part 3).
- *
- * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
- * need to use are documented accordingly near the end.
- */
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import { NextApiRequest, NextApiResponse } from "next";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
+import { ISession } from "~/types/session";
 
 /**
  * 1. CONTEXT
@@ -21,7 +14,7 @@ import { prisma } from "~/server/db";
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
 
-type CreateContextOptions = Record<string, never>;
+type CreateContextOptions = { session: ISession | null };
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -36,6 +29,7 @@ type CreateContextOptions = Record<string, never>;
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   return {
     prisma,
+    session: _opts.session,
   };
 };
 
@@ -46,11 +40,24 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = (_opts: CreateNextContextOptions) => {
-  const innerContext = createInnerTRPCContext({});
+  const req = _opts.req;
+  const res = _opts.res;
+
+  const cookie = req.cookies["_session"] || null;
+  if (cookie) {
+    const session = jwt.verify(cookie, process.env.JWT_SECRET as string) as ISession;
+    const innerContext = createInnerTRPCContext({ session });
+    return {
+      ...innerContext,
+      req,
+      res,
+    };
+  }
+  const innerContext = createInnerTRPCContext({ session: null });
   return {
     ...innerContext,
-    req: _opts.req,
-    res: _opts.res,
+    req,
+    res,
   };
 };
 
@@ -97,3 +104,16 @@ export const createTRPCRouter = t.router;
  * are logged in.
  */
 export const publicProcedure = t.procedure;
+
+export const privateProcedure = t.procedure.use(({ ctx, next }) => {
+  const session = ctx.session;
+  if (!session) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      session,
+    },
+  });
+});
