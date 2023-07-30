@@ -1,12 +1,20 @@
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcrypt";
-import { setCookie } from "cookies-next";
+import { deleteCookie, setCookie } from "cookies-next";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { env } from "~/env.mjs";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, privateProcedure, publicProcedure } from "~/server/api/trpc";
 
 export const authRouter = createTRPCRouter({
+  getSession: privateProcedure
+    .input(z.object({ forward: z.boolean() }))
+    .query(({ ctx }) => {
+      return { session: ctx.session };
+    }),
+  logout: privateProcedure.mutation(({ ctx }) => {
+    deleteCookie("_session", { req: ctx.req, res: ctx.res });
+  }),
   login: publicProcedure
     .input(z.object({ address: z.string(), signature: z.string() }))
     .mutation(async ({ input, ctx }) => {
@@ -49,8 +57,7 @@ export const authRouter = createTRPCRouter({
           expiresIn: "1d",
         });
 
-        // setCookie("_session2", token);
-        setCookie("_session2", token, {
+        setCookie("_session", token, {
           req: ctx.req,
           res: ctx.res,
           maxAge: 60 * 24,
@@ -59,6 +66,7 @@ export const authRouter = createTRPCRouter({
           httpOnly: true,
         });
         console.log(token);
+        return true;
       } catch {
         throw new TRPCError({ code: "PRECONDITION_FAILED" });
       }
