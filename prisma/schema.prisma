@@ -16,16 +16,30 @@ model User {
   signature   String
   user_name   String?
   collections Collection[]
+  holdings    UserHolds[]
 }
 
 model Collection {
-  address         String    @id
+  address         String      @id
+  networks        String
   collection_name String?
   messages        Message[]
-  owner           User      @relation(fields: [owner_address], references: [address])
+  owner           User        @relation(fields: [owner_address], references: [address])
   owner_address   String
+  holders         UserHolds[]
 
   @@index([owner_address])
+}
+
+model UserHolds {
+  holder_address     String
+  collection_address String
+  holder             User       @relation(fields: [holder_address], references: [address])
+  collection         Collection @relation(fields: [collection_address], references: [address])
+
+  @@id([holder_address, collection_address])
+  @@index([holder_address])
+  @@index([collection_address])
 }
 
 model Message {
