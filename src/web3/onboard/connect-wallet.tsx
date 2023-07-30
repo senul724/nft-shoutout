@@ -58,6 +58,44 @@ export const ConnectWallet = (props: {
     wallet: undefined,
   };
 
+  const handleOnSubmit = async (values: { wallet: undefined | AvailableWallets }) => {
+    const { wallet } = values;
+    if (!wallet) {
+      setOngoing(false);
+      return toast.error(
+        "Please select a wallet to get started",
+        { id: "login" },
+      );
+    }
+    setOngoing(true);
+    toast.loading("logging in...", { id: "login" });
+    const { account, token, walletFound } = await onBoard(
+      wallet as AvailableWallets,
+    );
+
+    if (!walletFound) {
+      setSelectedWallet(wallet as AvailableWallets);
+      setOpenNotFound(true);
+      setOngoing(false);
+      toast.dismiss();
+      return;
+    }
+
+    if (!account || !token) {
+      toast.error(getErrorMsg("sww"), { id: "login" });
+      setConnectWalletOpen(false);
+      return;
+    }
+    const state = await loginIn({ address: account, signature: token });
+    if (state) {
+      toast.success("successfully logged in!", { id: "login" });
+      await router.push("/dashboard");
+      return;
+    }
+    toast.error("login failed!", { id: "login" });
+    setConnectWalletOpen(false);
+  };
+
   return (
     <div>
       <Transition appear show={connectWalletOpen} as={Fragment}>
@@ -100,34 +138,7 @@ export const ConnectWallet = (props: {
                   <div className="mt-2">
                     <Formik
                       initialValues={initialValues}
-                      onSubmit={async (values) => {
-                        const { wallet } = values;
-                        if (!wallet) {
-                          setOngoing(false);
-                          return toast.error(
-                            "Please select a wallet to get started",
-                          );
-                        }
-                        setOngoing(true);
-                        const { account, token, walletFound } = await onBoard(
-                          wallet as AvailableWallets,
-                        );
-
-                        if (!walletFound) {
-                          setSelectedWallet(wallet as AvailableWallets);
-                          setOpenNotFound(true);
-                          setOngoing(false);
-                          return;
-                        }
-
-                        if (!account || !token) {
-                          toast.error(getErrorMsg("sww"));
-                          setConnectWalletOpen(false);
-                          return;
-                        }
-                        await loginIn({ address: account, signature: token });
-                        setConnectWalletOpen(false);
-                      }}
+                      onSubmit={handleOnSubmit}
                     >
                       {({ isSubmitting }) => (
                         <Form>
