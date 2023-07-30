@@ -19,8 +19,8 @@ export const onBoard = async (
   };
 
   // return values
-  let token: String | undefined = undefined;
-  let account: String | undefined = undefined;
+  let token: string | undefined = undefined;
+  let account: string | undefined = undefined;
 
   /**
    * @description wallet object returns 3 ansync function(login(network id), logout,
