@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 /**
  * Get the browser name from the cookie
  */
@@ -58,4 +59,12 @@ export const getOsName = (): OSs => {
     default:
       return "UNKNWOWN";
   }
+};
+
+export const decodeSession = (hash: string | undefined | null) => {
+  if (!hash) {
+    return null;
+  }
+  const session = jwt.verify(hash, process.env.JWT_SECRET as string);
+  return session ? session : null;
 };
