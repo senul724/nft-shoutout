@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  // const path = request.nextUrl.pathname;
+  const path = request.nextUrl.pathname;
 
-  console.log("cookie *******************************");
+  const session = request.cookies.get("_session")?.value;
 
-  console.log(request.cookies.get("_session"));
+  if (path === "/" && session) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  if (path.startsWith("/dashboard") && !session) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
 
   return NextResponse.next();
 }
