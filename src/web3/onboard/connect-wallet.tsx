@@ -68,11 +68,11 @@ export const ConnectWallet = (props: {
       );
     }
     setOngoing(true);
-    toast.loading("logging in...", { id: "login" });
     const { account, token, walletFound } = await onBoard(
       wallet as AvailableWallets,
     );
 
+    toast.loading("logging in...", { id: "login" });
     if (!walletFound) {
       setSelectedWallet(wallet as AvailableWallets);
       setOpenNotFound(true);
