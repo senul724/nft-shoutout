@@ -1,6 +1,5 @@
 import { BadgeCheckIcon, XCircleIcon } from "@heroicons/react/solid";
 import { Field } from "formik";
-import styles from "../../styles/settings.module.scss";
 import { Loader } from "../utils/loader";
 interface IProps {
   name: string;
@@ -43,9 +42,9 @@ export const CustomTextBox = (props: IProps) => {
   } = props;
   return (
     <>
-      <div className={styles.formik_field}>
-        <span className={styles.label_row}>
-          <label className={styles.label_text}>{label}</label>
+      <div className="">
+        <span className="">
+          <label className="">{label}</label>
         </span>
         <Field
           as="textarea"
@@ -57,7 +56,7 @@ export const CustomTextBox = (props: IProps) => {
           className={className}
         />
       </div>
-      {error && touched ? <div className="text-red-600 text-xs">{error}</div> : null}
+      {error && touched ? <div className="text-xs text-red-600">{error}</div> : null}
     </>
   );
 };
@@ -80,11 +79,11 @@ export const CustomField = (props: IProps) => {
     <>
       {label
         ? (
-          <div className={styles.formik_field}>
-            <span className={styles.label_row}>
-              <label className={styles.label_text}>{label}</label>
+          <div className="flex flex-col gap-2">
+            <span className="text-xl font-semibold text-gray-900">
+              <label className="">{label}</label>
             </span>{" "}
-            {error && touched ? <p className="text-red-600 text-xs my-1">{error}</p> : null}
+            {error && touched ? <p className="my-1 text-xs text-red-600">{error}</p> : null}
             <Field
               name={name}
               type={type}
@@ -96,9 +95,9 @@ export const CustomField = (props: IProps) => {
           </div>
         )
         : (
-          <div className={styles.formik_field}>
+          <div className="">
             <label>{icon}</label>
-            {error && touched ? <p className="text-red-600 text-xs my-1">{error}</p> : null}
+            {error && touched ? <p className="my-1 text-xs text-red-600">{error}</p> : null}
             <Field
               name={name}
               type={type}
@@ -131,10 +130,10 @@ export const CustomFieldWithLoader = (props: IPropsForLoader) => {
     <>
       <div>
         <span>
-          <label className={styles.label_text}>{label}</label>
+          <label className="">{label}</label>
         </span>
-        {error && !isValidating ? <div className="text-red-600 text-xs my-1">{error}</div> : null}
-        <div className={`${styles.formik_field} flex gap-2`}>
+        {error && !isValidating ? <div className="my-1 text-xs text-red-600">{error}</div> : null}
+        <div className={`$"" flex gap-2`}>
           <Field
             name={name}
             type={type}
