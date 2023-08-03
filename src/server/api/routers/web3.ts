@@ -1,4 +1,5 @@
 import { JsonRpcProvider } from "@ethersproject/providers";
+import { TRPCError } from "@trpc/server";
 import { Contract } from "ethers";
 import { z } from "zod";
 import { getErrorMsg } from "~/data/error-list";
@@ -8,9 +9,35 @@ import * as pvtRPCs from "~/web3/rpcs/private-rpcs.json";
 
 export const web3Router = createTRPCRouter({
   shoutOut: privateProcedure
-    .input(z.object({ userAddress: z.string(), collectionAddress: z.string(), msg: z.string().max(181) }))
-    .mutation(({ input, ctx }) => {
-      const { userAddress, collectionAddress, msg } = input;
+    .input(z.object({ collectionAddress: z.string(), msg: z.string().max(181) }))
+    .mutation(async ({ input, ctx }) => {
+      const { collectionAddress, msg } = input;
+      const { address: userAddress } = ctx.session;
+      const collection = await ctx.prisma.collection.findUnique({
+        where: {
+          address: collectionAddress,
+        },
+        select: {
+          owner_address: true,
+        },
+      });
+      if (!collection) {
+        return { success: false, msg: getErrorMsg("sww") };
+      }
+      if (collection.owner_address !== userAddress) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+      try {
+        await ctx.prisma.message.create({
+          data: {
+            collection_address: collectionAddress,
+            content: msg,
+          },
+        });
+        return { success: true, msg: "shout out was successful!" };
+      } catch {
+        return { success: false, msg: getErrorMsg("sww") };
+      }
     }),
   addHolder: privateProcedure
     .input(z.object({ collectionAddress: z.string() }))
@@ -68,17 +95,22 @@ export const web3Router = createTRPCRouter({
       }
 
       // adding the collection to the users holding if not added
-      await ctx.prisma.userHolds.upsert({
-        where: {
-          holder_address_collection_address: { holder_address: userAddress, collection_address: collectionAddress },
-        },
+      try {
+        await ctx.prisma.userHolds.upsert({
+          where: {
+            holder_address_collection_address: { holder_address: userAddress, collection_address: collectionAddress },
+          },
 
-        create: {
-          collection_address: collectionAddress,
-          holder_address: userAddress,
-        },
-        update: {},
-      });
+          create: {
+            collection_address: collectionAddress,
+            holder_address: userAddress,
+          },
+          update: {},
+        });
+        return { success: true, msg: "collection added to holdings successfully" };
+      } catch {
+        return { success: false, msg: "attempt failed" };
+      }
     }),
 
   addCollection: privateProcedure
@@ -100,19 +132,36 @@ export const web3Router = createTRPCRouter({
           owner_address: true,
         },
       });
-      if (!collection) {
-        return { success: false, msg: "collection not available or registered" };
+      if (collection) {
+        return { success: false, msg: "collection already registered" };
       }
 
       // add a method here to figure out if the caller is the owner of the contract
 
+      const provider = new JsonRpcProvider(pvtRPCs[networks[0] as AvailableNetworks]);
+      const contract = new Contract(collectionAddress, [
+        "function name() external view returns (string memory)",
+      ], provider);
+
+      let name: null | string = null;
+      try {
+        // @ts-expect-error Stupid undefined bug
+        name = await contract.callStatic.name();
+      } catch {}
+
       // adding the collection to the users holding if not added
-      await ctx.prisma.collection.create({
-        data: {
-          address: collectionAddress,
-          owner_address: userAddress,
-          networks: JSON.stringify({ chains: networks }),
-        },
-      });
+      try {
+        await ctx.prisma.collection.create({
+          data: {
+            collection_name: name,
+            address: collectionAddress,
+            owner_address: userAddress,
+            networks: JSON.stringify({ chains: networks }),
+          },
+        });
+        return { success: true, msg: "collection registered successfully" };
+      } catch {
+        return { success: false, msg: "registration failed" };
+      }
     }),
 });
