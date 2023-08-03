@@ -17,7 +17,7 @@ export default function Home() {
       <Head>
         <title>NFT Shoutout</title>
         <meta name="description" content="Shoutout to your NFT community in a giffy!" />
-        {/* <link rel="icon" href="/favicon.ico" /> */}
+        <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex flex-col justify-center items-center min-h-screen">
         <div className="container flex flex-col gap-12 justify-center items-center py-16 px-4">
