@@ -28,12 +28,6 @@ export const authRouter = createTRPCRouter({
           select: {
             signature: true,
             user_name: true,
-            collections: {
-              select: {
-                address: true,
-                collection_name: true,
-              },
-            },
           },
         });
 
@@ -51,7 +45,7 @@ export const authRouter = createTRPCRouter({
           if (!await bcrypt.compare(signature, user.signature)) {
             throw new TRPCError({ code: "CONFLICT" });
           }
-          payload = { address, userName: user.user_name, collections: user.collections };
+          payload = { address, userName: user.user_name };
         }
         const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
           expiresIn: "1d",
@@ -60,7 +54,7 @@ export const authRouter = createTRPCRouter({
         setCookie("_session", token, {
           req: ctx.req,
           res: ctx.res,
-          maxAge: 60 * 24,
+          maxAge: 60 * 60 * 24,
           path: "/",
           secure: env.NODE_ENV === "production",
           httpOnly: true,
