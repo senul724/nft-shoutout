@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { ISession } from "./types/session";
+import type { ISession } from "./types/session";
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   const session = request.cookies.get("_session")?.value;

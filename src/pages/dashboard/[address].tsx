@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { BsBroadcast, BsDatabaseAdd, BsInboxesFill, BsPower } from "react-icons/bs";
 import Broadcast from "~/components/dashboard/broadcast";
-import Inbox, { ICollection } from "~/components/dashboard/inbox";
+import Inbox, { type ICollection } from "~/components/dashboard/inbox";
 import New from "~/components/dashboard/new";
 import { prisma } from "~/server/db";
 import { api } from "~/utils/api";

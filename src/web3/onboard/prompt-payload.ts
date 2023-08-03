@@ -1,4 +1,4 @@
-import { AvailableWallets } from "src/types/web3";
+import type { AvailableWallets } from "src/types/web3";
 import { getOsName } from "src/utils/cookies";
 
 const downloadLink = {

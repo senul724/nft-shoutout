@@ -47,7 +47,7 @@ export const authRouter = createTRPCRouter({
           }
           payload = { address, userName: user.user_name };
         }
-        const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
+        const token = jwt.sign(payload, process.env.JWT_SECRET ? process.env.JWT_SECRET : "", {
           expiresIn: "1d",
         });
 

@@ -96,7 +96,7 @@ export default function Inbox(
   );
 }
 
-function Card(props: { content: string; onClickHandler?: () => any }) {
+function Card(props: { content: string; onClickHandler?: () => void }) {
   const { content, onClickHandler } = props;
   return (
     <div

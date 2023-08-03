@@ -2,13 +2,13 @@ import { Dialog, Transition } from "@headlessui/react";
 import { Form, Formik } from "formik";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { Dispatch, Fragment, SetStateAction, useEffect, useState } from "react";
+import { type Dispatch, Fragment, type SetStateAction, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import CustomSelectComponent from "src/components/forms/custom-select-component";
 import { CoinbaseIcon } from "src/components/icons/coinbase";
 import { FortmaticIcon } from "src/components/icons/fortmatic";
 import { MetamaskIcon } from "src/components/icons/metamask";
-import { AvailableWallets } from "src/types/web3";
+import type { AvailableWallets } from "src/types/web3";
 import { getErrorMsg } from "~/data/error-list";
 import { api } from "~/utils/api";
 import { onBoard } from "./on-board";
@@ -51,9 +51,6 @@ export const ConnectWallet = (props: {
 
   const { mutateAsync: loginIn } = api.auth.login.useMutation();
 
-  const closeModal = () => {
-    setConnectWalletOpen(false);
-  };
   const initialValues: { wallet: undefined | AvailableWallets } = {
     wallet: undefined,
   };
@@ -68,13 +65,11 @@ export const ConnectWallet = (props: {
       );
     }
     setOngoing(true);
-    const { account, token, walletFound } = await onBoard(
-      wallet as AvailableWallets,
-    );
+    const { account, token, walletFound } = await onBoard(wallet);
 
     toast.loading("logging in...", { id: "login" });
     if (!walletFound) {
-      setSelectedWallet(wallet as AvailableWallets);
+      setSelectedWallet(wallet);
       setOpenNotFound(true);
       setOngoing(false);
       toast.dismiss();

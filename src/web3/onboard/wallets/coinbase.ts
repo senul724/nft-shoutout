@@ -1,5 +1,5 @@
 import CoinbaseWalletSDK from "@coinbase/wallet-sdk";
-import { JsonRpcSigner } from "@ethersproject/providers";
+import type { JsonRpcSigner } from "@ethersproject/providers";
 import { providers } from "ethers";
 import toast from "react-hot-toast";
 import { getErrorMsg } from "src/data/error-list";

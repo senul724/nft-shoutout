@@ -1,10 +1,11 @@
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { TRPCError } from "@trpc/server";
-import { Contract } from "ethers";
+import { Contract, type ContractFunction } from "ethers";
 import { z } from "zod";
 import { getErrorMsg } from "~/data/error-list";
 import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
-import { AvailableNetworks, ZodAvailableNetworks } from "~/types/web3";
+import { ZodAvailableNetworks } from "~/types/web3";
+import { getNetworkArray } from "~/utils/type_helper";
 import * as pvtRPCs from "~/web3/rpcs/private-rpcs.json";
 
 export const web3Router = createTRPCRouter({
@@ -76,14 +77,20 @@ export const web3Router = createTRPCRouter({
       }
 
       // checking if the user is a holder of the Contract
-      const availableNetworks: AvailableNetworks[] = JSON.parse(collection.networks).chains;
-      const provider = new JsonRpcProvider(pvtRPCs[availableNetworks[0] as AvailableNetworks]);
+      const jsonObj = JSON.parse(collection.networks) as { chains: string[] | undefined };
+      const providedNetworks = getNetworkArray(jsonObj.chains);
+      if (!providedNetworks[0]) {
+        return { success: false, msg: "no network found" };
+      }
+      const provider = new JsonRpcProvider(pvtRPCs[providedNetworks[0]]);
       const contract = new Contract(collectionAddress, [
         "function balanceOf(address _owner) external view returns (uint256)",
       ], provider);
       try {
-        // @ts-expect-error Stupid undefined bug
-        const balance = await contract.callStatic.balanceOf(userAddress);
+        const staticContract = contract.callStatic as {
+          balanceOf: ContractFunction<number | undefined>;
+        };
+        const balance = await staticContract.balanceOf(userAddress);
         if (!balance) {
           return { success: false, msg: getErrorMsg("sww") };
         }
@@ -114,11 +121,15 @@ export const web3Router = createTRPCRouter({
     }),
 
   addCollection: privateProcedure
-    .input(z.object({ collectionAddress: z.string(), networks: z.array(ZodAvailableNetworks) }))
+    .input(z.object({ collectionAddress: z.string(), networks: z.array(ZodAvailableNetworks).min(1) }))
     .mutation(async ({ input, ctx }) => {
       // get user address from the session
       const { address: userAddress } = ctx.session;
       const { collectionAddress, networks } = input;
+
+      if (!networks[0]) {
+        return { success: false, msg: "invalid argument" };
+      }
 
       // users availabilty is checked before without using an upsert operation because rpc call are far more
       // expensive than a single db read
@@ -138,15 +149,15 @@ export const web3Router = createTRPCRouter({
 
       // add a method here to figure out if the caller is the owner of the contract
 
-      const provider = new JsonRpcProvider(pvtRPCs[networks[0] as AvailableNetworks]);
+      const provider = new JsonRpcProvider(pvtRPCs[networks[0]]);
       const contract = new Contract(collectionAddress, [
         "function name() external view returns (string memory)",
       ], provider);
 
       let name: null | string = null;
       try {
-        // @ts-expect-error Stupid undefined bug
-        name = await contract.callStatic.name();
+        const staticContract = contract.callStatic as { name: ContractFunction<string | undefined> };
+        name = (await staticContract.name()) ?? null;
       } catch {}
 
       // adding the collection to the users holding if not added

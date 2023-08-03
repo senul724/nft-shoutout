@@ -1,10 +1,10 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
-import { ISession } from "~/types/session";
+import { type ISession } from "~/types/session";
 
 /**
  * 1. CONTEXT
@@ -14,7 +14,9 @@ import { ISession } from "~/types/session";
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
 
-type CreateContextOptions = { session: ISession | null };
+interface CreateContextOptions {
+  session: ISession | null;
+}
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -43,9 +45,9 @@ export const createTRPCContext = (_opts: CreateNextContextOptions) => {
   const req = _opts.req;
   const res = _opts.res;
 
-  const cookie = req.cookies["_session"] || null;
+  const cookie = req.cookies._session ?? null;
   if (cookie) {
-    const session = jwt.verify(cookie, process.env.JWT_SECRET as string) as ISession;
+    const session = jwt.verify(cookie, process.env.JWT_SECRET ?? "") as ISession;
     const innerContext = createInnerTRPCContext({ session });
     return {
       ...innerContext,

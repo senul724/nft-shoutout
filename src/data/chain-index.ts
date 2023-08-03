@@ -1,4 +1,4 @@
-import { AvailableNetworks } from "src/types/web3";
+import type { AvailableNetworks } from "src/types/web3";
 
 const chainIndexes = {
   "1": "1",

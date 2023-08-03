@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
 import { getErrorMsg } from "src/data/error-list";
-import { AvailableWallets } from "src/types/web3";
+import type { AvailableWallets } from "src/types/web3";
 import coinbase from "./wallets/coinbase";
 import fortmatic from "./wallets/fortmatic";
 import metamask from "./wallets/metamask";
@@ -54,9 +54,8 @@ export const onBoard = async (
   const message = `I am willing to log into nftshoutout.com with the address "${account}"`;
   try {
     token = await signer.signMessage(message);
-
-    // eslint-disable-next-line
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { code: string | number | undefined };
     if (error.code === 4001 || error.code === "ACTION_REJECTED") {
       toast.error("please sign the message to move forward");
     } else {

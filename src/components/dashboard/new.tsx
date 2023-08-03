@@ -2,7 +2,7 @@ import { Form, Formik } from "formik";
 import { toast } from "react-hot-toast";
 import * as chainData from "~/data/chaindata-by-shorts.json";
 import { getErrorMsg } from "~/data/error-list";
-import { AvailableNetworks, AvailableNetworkShorts } from "~/types/web3";
+import type { AvailableNetworks, AvailableNetworkShorts } from "~/types/web3";
 import { api } from "~/utils/api";
 import { isValidAddress } from "~/web3/utils/address-validator";
 import CustomSelectComponent from "../forms/custom-select-component";

@@ -1,27 +1,30 @@
-import { JsonRpcSigner } from "@ethersproject/providers";
+import type { ExternalProvider, JsonRpcSigner } from "@ethersproject/providers";
 import { providers } from "ethers";
 import toast from "react-hot-toast";
 import { getErrorMsg } from "src/data/error-list";
+
+interface IWindowWeb3 {
+  providers?: ExternalProvider[];
+  isMetaMask?: boolean;
+  request?: (request: { method: string }) => Promise<unknown>;
+}
 
 const metamask = () => {
   // walletId = "1"
 
   // Setting up the metamask provider from injected web3
-  // eslint-disable-next-line
-  let metamaskProvider: any;
+  let metamaskProvider: ExternalProvider | undefined | IWindowWeb3;
 
   /**
    * @description ethereum,providers object will only be available if there are
    * multiple wallets installed by the user. So setting provider accordingly to
    * avoid any runtime errors
    */
-  // eslint-disable-next-line
-  const windowWeb3 = window.ethereum as any;
+  const windowWeb3 = window.ethereum as undefined | IWindowWeb3;
   if (windowWeb3) {
     if (windowWeb3.providers) {
       metamaskProvider = windowWeb3.providers.find(
-        // eslint-disable-next-line
-        (injectedWallet: any) => injectedWallet.isMetaMask,
+        (injectedWallet: ExternalProvider) => injectedWallet.isMetaMask,
       );
       // If not checking if metamask is available
     } else if (windowWeb3.isMetaMask) {
@@ -43,13 +46,17 @@ const metamask = () => {
     let confirmation = false;
     let signer: undefined | JsonRpcSigner = undefined;
 
+    if (!metamaskProvider?.request) {
+      return { signer, confirmation };
+    }
+
     try {
       await metamaskProvider.request({ method: "eth_requestAccounts" });
       const provider = new providers.Web3Provider(metamaskProvider);
       signer = provider.getSigner();
       confirmation = true;
-      // eslint-disable-next-line
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { code: string | number };
       if (error.code === -32002) {
         toast.error(
           "You've already requested to onboard, please unlock your wallet and accept the request.",

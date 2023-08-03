@@ -1,4 +1,4 @@
-import { JsonRpcSigner } from "@ethersproject/providers";
+import type { JsonRpcSigner } from "@ethersproject/providers";
 import { providers } from "ethers";
 import FortmaticProvider from "fortmatic";
 import toast from "react-hot-toast";
