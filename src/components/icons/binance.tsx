@@ -1,10 +1,7 @@
-export const BinanceIcon = (props: { width: number; height: number }) => {
-  const width = props.width.toString();
-  const height = props.width.toString();
-
+export const BinanceIcon = () => {
   return (
     <svg
-      className={`w-${width} h-${height} fill-current`}
+      className={`w-10 h-10 fill-current`}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 2000 2000"
     >

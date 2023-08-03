@@ -7,9 +7,9 @@ import { api } from "~/utils/api";
 import { isValidAddress } from "~/web3/utils/address-validator";
 import CustomSelectComponent from "../forms/custom-select-component";
 import { CustomField } from "../forms/field-component";
-import { CoinbaseIcon } from "../icons/coinbase";
-import { FortmaticIcon } from "../icons/fortmatic";
-import { MetamaskIcon } from "../icons/metamask";
+import { BinanceIcon } from "../icons/binance";
+import { EthereumIcon } from "../icons/ethereum";
+import { MaticIcon } from "../icons/matic";
 
 export default function New() {
   const { mutateAsync: addCollection, isLoading } = api.web3.addCollection.useMutation();
@@ -87,7 +87,7 @@ export default function New() {
               <ul className="my-4 space-y-3">
                 <li>
                   <CustomSelectComponent
-                    icon={<MetamaskIcon />}
+                    icon={<MaticIcon />}
                     name="networks.matic"
                     label="Matic"
                     type="checkbox"
@@ -95,7 +95,7 @@ export default function New() {
                 </li>
                 <li>
                   <CustomSelectComponent
-                    icon={<FortmaticIcon />}
+                    icon={<BinanceIcon />}
                     name="networks.bsc"
                     label="Binance smart chain"
                     type="checkbox"
@@ -103,7 +103,7 @@ export default function New() {
                 </li>
                 <li>
                   <CustomSelectComponent
-                    icon={<CoinbaseIcon />}
+                    icon={<EthereumIcon />}
                     name="networks.eth"
                     label="Ethereum"
                     type="checkbox"
