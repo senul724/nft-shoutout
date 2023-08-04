@@ -29,6 +29,11 @@ export const authRouter = createTRPCRouter({
           select: {
             signature: true,
             user_name: true,
+            collections: {
+              select: {
+                address: true,
+              },
+            },
           },
         });
 
@@ -41,12 +46,13 @@ export const authRouter = createTRPCRouter({
               signature: signatureHash,
             },
           });
-          payload = { address, userName: undefined, collections: undefined };
+          payload = { address, userName: undefined, collections: [] };
         } else {
           if (!await bcrypt.compare(signature, user.signature)) {
             throw new TRPCError({ code: "CONFLICT" });
           }
-          payload = { address, userName: user.user_name };
+          const collectionAddresses = user.collections.map(el => el.address);
+          payload = { address, userName: user.user_name, collections: collectionAddresses };
         }
         const token = await new SignJWT(payload)
           .setProtectedHeader({ alg: "HS256" })
