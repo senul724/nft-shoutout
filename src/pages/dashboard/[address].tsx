@@ -1,91 +1,104 @@
-import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { BsBroadcast, BsDatabaseAdd, BsInboxesFill, BsPower } from "react-icons/bs";
-import Broadcast from "~/components/dashboard/broadcast";
-import Inbox, { type ICollection } from "~/components/dashboard/inbox";
-import New from "~/components/dashboard/new";
+import { ReactElement, useRef } from "react";
+import { toast } from "react-hot-toast";
+import { Dash } from "~/components/layout/dash";
+import { getErrorMsg } from "~/data/error-list";
+import { NextPageWithLayout } from "~/pages/_app";
 import { prisma } from "~/server/db";
 import { api } from "~/utils/api";
-import { classNames } from "~/utils/utils";
+import { isValidAddress } from "~/web3/utils/address-validator";
 
-interface IPayload {
+interface ICollection {
   address: string;
-  userName: string | null;
-  holdings: ICollection[] | null;
-  collections: ICollection[] | null;
+  collection_name: string | null;
 }
 
-export default function UserDash(
-  props: IPayload,
-) {
-  const { holdings, collections, address, userName } = props;
+interface IPayload {
+  holdings: ICollection[] | null;
+}
+
+const UserDash: NextPageWithLayout<IPayload> = (props) => {
+  const { holdings } = props;
+
   const router = useRouter();
 
-  const { mutateAsync: logout } = api.auth.logout.useMutation();
+  const { mutateAsync: addHoldings, isLoading } = api.web3.addHolder.useMutation();
 
-  const [tab, setTab] = useState<"inbox" | "new" | "msg">("inbox");
+  const addressRef = useRef<HTMLInputElement>(null);
 
-  const handleLogout = async () => {
-    await logout();
-    await router.push("/");
+  const handleSubmit = async () => {
+    const collectionAddress = addressRef.current?.value;
+    if (isLoading) {
+      return;
+    }
+
+    if (!collectionAddress || !isValidAddress(collectionAddress)) {
+      toast.error("invalid address", { id: "add_holdings" });
+      return;
+    }
+    toast.loading("adding collection to holdings...", { id: "add_holdings" });
+    const res = await addHoldings({ collectionAddress });
+    if (!res) {
+      toast.error(getErrorMsg("sww"), { id: "add_holdings" });
+      return;
+    }
+    return res.success
+      ? toast.success(res.msg, { id: "add_holdings" })
+      : toast.error(res.msg, { id: "add_holdings" });
   };
 
   return (
-    <>
-      <Head>
-        <title>dashboard</title>
-        <meta name="description" content="Shoutout to your NFT community in a giffy!" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main className="flex justify-center">
-        <div className="flex flex-col gap-12 justify-center py-5 pl-20 w-1/5 min-h-screen bg-emerald-600 shadow-2xl items-left">
-          <div className="flex flex-col gap-4 w-full">
-            <p className="text-3xl font-bold text-white">Welcome again {userName}!</p>
-            <p className="-ml-10 w-full text-sm font-semibold text-center text-white">{address}</p>
+    <div className="py-5 w-full min-h-screen">
+      <div className="flex flex-col justify-center items-center w-full min-h-screen">
+        <div className="grid grid-cols-2 gap-4 px-10 w-full">
+          {holdings && holdings.length > 0
+            ? (
+              <>
+                {holdings.map((el, i) => (
+                  <Card
+                    content={el.collection_name ? el.collection_name : el.address}
+                    key={i}
+                    onClickHandler={() => {
+                      router.push(`/dashboard/collection/${el.address}`);
+                    }}
+                  />
+                ))}
+              </>
+            )
+            : <Card content="No holdings to receive messages" />}
+        </div>
+        <div className="flex flex-col p-5 mt-10 w-1/2 rounded-xl border">
+          <label className="text-xl font-semibold text-gray-900">
+            Prove your holdings holding to receive messages
+          </label>
+          <div className="flex gap-4 mt-10 w-full">
+            <input
+              className="p-2 w-2/3 text-lg rounded-lg"
+              ref={addressRef}
+              placeholder="Enter collection address"
+            />
+            <button
+              className="p-2 w-1/3 text-xl font-bold text-white bg-blue-400 rounded-lg drop-shadow"
+              onClick={() => void handleSubmit()}
+            >
+              add
+            </button>
           </div>
-          <button
-            className={classNames(
-              "hover:scale-105 gap-4 flex items-center justify-left text-2xl  font-bold text-white",
-            )}
-            onClick={() => setTab("inbox")}
-          >
-            <BsInboxesFill size={25} /> inbox
-          </button>
-          <button
-            className={classNames(
-              "hover:scale-105  gap-4 flex items-center justify-left text-2xl  font-bold text-white",
-            )}
-            onClick={() => setTab("new")}
-          >
-            <BsDatabaseAdd size={25} /> register collection
-          </button>
-          <button
-            className={classNames(
-              "hover:scale-105  gap-4 flex items-center justify-left text-2xl  font-bold text-white",
-            )}
-            onClick={() => setTab("msg")}
-          >
-            <BsBroadcast size={25} /> broadcast
-          </button>
-          <button
-            className={classNames(
-              "hover:scale-105  gap-4 flex items-center justify-left text-2xl  font-bold text-white",
-            )}
-            onClick={() => void handleLogout()}
-          >
-            <BsPower size={25} /> logout
-          </button>
         </div>
-        <div className="py-5 w-4/5 min-h-screen">
-          {tab === "inbox"
-            && <Inbox collections={holdings} />}
-          {tab === "msg"
-            && <Broadcast collections={collections} callback={() => setTab("new")} />}
-          {tab === "new" && <New />}
-        </div>
-      </main>
-    </>
+      </div>
+    </div>
+  );
+};
+
+function Card(props: { content: string; onClickHandler?: () => void }) {
+  const { content, onClickHandler } = props;
+  return (
+    <div
+      className="py-5 text-2xl font-semibold text-center text-gray-600 bg-white rounded-xl border shadow-lg hover:scale-105"
+      onClick={() => onClickHandler ? void onClickHandler() : null}
+    >
+      {content}
+    </div>
   );
 }
 
@@ -110,13 +123,6 @@ export async function getStaticProps(props: { params: { address: string } }) {
       address: params.address,
     },
     select: {
-      user_name: true,
-      collections: {
-        select: {
-          address: true,
-          collection_name: true,
-        },
-      },
       holdings: {
         select: {
           collection: {
@@ -130,10 +136,10 @@ export async function getStaticProps(props: { params: { address: string } }) {
     },
   });
 
-  let payload: IPayload = { address: params.address, collections: null, holdings: null, userName: null };
+  let payload: IPayload = { holdings: null };
   if (userData) {
     const holdings = userData.holdings.map((el) => el.collection);
-    payload = { address: params.address, collections: userData.collections, holdings, userName: userData.user_name };
+    payload = { holdings };
   }
 
   return {
@@ -141,3 +147,12 @@ export async function getStaticProps(props: { params: { address: string } }) {
     revalidate: 60,
   };
 }
+
+UserDash.getLayout = function getLayout(page: ReactElement) {
+  return (
+    <Dash>
+      {page}
+    </Dash>
+  );
+};
+export default UserDash;
