@@ -1,10 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcrypt";
 import { deleteCookie, setCookie } from "cookies-next";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 import { z } from "zod";
 import { env } from "~/env.mjs";
 import { createTRPCRouter, privateProcedure, publicProcedure } from "~/server/api/trpc";
+import { jwt_key } from "~/utils/phrase_formatter";
 
 export const authRouter = createTRPCRouter({
   getSession: privateProcedure
@@ -47,9 +48,11 @@ export const authRouter = createTRPCRouter({
           }
           payload = { address, userName: user.user_name };
         }
-        const token = jwt.sign(payload, process.env.JWT_SECRET ? process.env.JWT_SECRET : "", {
-          expiresIn: "1d",
-        });
+        const token = await new SignJWT(payload)
+          .setProtectedHeader({ alg: "HS256" })
+          .setIssuedAt()
+          .setExpirationTime("1d")
+          .sign(jwt_key);
 
         setCookie("_session", token, {
           req: ctx.req,

@@ -1,9 +1,9 @@
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import type { ISession } from "./types/session";
+import { jwt_key } from "./utils/phrase_formatter";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   const session = request.cookies.get("_session")?.value;
@@ -17,7 +17,9 @@ export function middleware(request: NextRequest) {
   }
 
   if (path.startsWith("/dashboard") && session) {
-    const { address } = jwt.decode(session) as ISession;
+    const { payload } = await jwtVerify(session, jwt_key);
+    const { address } = payload as { address: string };
+    console.log(address);
     return NextResponse.rewrite(new URL(`/dashboard/${address}`, request.url));
   }
 

@@ -1,10 +1,11 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "~/server/db";
 import { type ISession } from "~/types/session";
+import { jwt_key } from "~/utils/phrase_formatter";
 
 /**
  * 1. CONTEXT
@@ -41,13 +42,14 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (_opts: CreateNextContextOptions) => {
+export const createTRPCContext = async (_opts: CreateNextContextOptions) => {
   const req = _opts.req;
   const res = _opts.res;
 
   const cookie = req.cookies._session ?? null;
   if (cookie) {
-    const session = jwt.verify(cookie, process.env.JWT_SECRET ?? "") as ISession;
+    const { payload } = await jwtVerify(cookie, jwt_key);
+    const session = payload as { address: string; userName: string | null };
     const innerContext = createInnerTRPCContext({ session });
     return {
       ...innerContext,
