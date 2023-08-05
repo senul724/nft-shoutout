@@ -1,6 +1,6 @@
-import { ReactElement } from "react";
+import type { ReactElement } from "react";
 import { Dash } from "~/components/layout/dash";
-import { NextPageWithLayout } from "~/pages/_app";
+import type { NextPageWithLayout } from "~/pages/_app";
 import { prisma } from "~/server/db";
 
 interface IPayload {

@@ -1,5 +1,5 @@
 import { Form, Formik } from "formik";
-import { ReactElement } from "react";
+import type { ReactElement } from "react";
 import { toast } from "react-hot-toast";
 import CustomSelectComponent from "~/components/forms/custom-select-component";
 import { CustomField } from "~/components/forms/field-component";
@@ -9,7 +9,7 @@ import { MaticIcon } from "~/components/icons/matic";
 import { Dash } from "~/components/layout/dash";
 import * as chainData from "~/data/chaindata-by-shorts.json";
 import { getErrorMsg } from "~/data/error-list";
-import { NextPageWithLayout } from "~/pages/_app";
+import type { NextPageWithLayout } from "~/pages/_app";
 import type { AvailableNetworks, AvailableNetworkShorts } from "~/types/web3";
 import { api } from "~/utils/api";
 import { isValidAddress } from "~/web3/utils/address-validator";

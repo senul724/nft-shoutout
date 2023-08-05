@@ -49,7 +49,7 @@ export const createTRPCContext = async (_opts: CreateNextContextOptions) => {
   const cookie = req.cookies._session ?? null;
   if (cookie) {
     const { payload } = await jwtVerify(cookie, jwt_key);
-    const session = payload as { address: string; userName: string | null };
+    const session = payload as { address: string; userName: string | null; collections: string[] };
     const innerContext = createInnerTRPCContext({ session });
     return {
       ...innerContext,

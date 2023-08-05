@@ -1,11 +1,11 @@
-import { AppProps, type AppType } from "next/app";
+import type { AppProps, AppType } from "next/app";
 import { api } from "~/utils/api";
 import "~/styles/globals.css";
-import { NextPage } from "next";
-import { ReactElement, ReactNode } from "react";
+import type { NextPage } from "next";
+import type { ReactElement, ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 
-export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+export type NextPageWithLayout<P = object, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
 
@@ -14,7 +14,7 @@ type AppPropsWithLayout = AppProps & {
 };
 
 const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
-  const getLayout = Component.getLayout || ((page) => page);
+  const getLayout = Component.getLayout ?? ((page) => page);
   return (
     <>
       <Toaster position="top-left" />

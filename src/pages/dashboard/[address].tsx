@@ -1,9 +1,9 @@
 import { useRouter } from "next/router";
-import { ReactElement, useRef } from "react";
+import { type ReactElement, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { Dash } from "~/components/layout/dash";
 import { getErrorMsg } from "~/data/error-list";
-import { NextPageWithLayout } from "~/pages/_app";
+import type { NextPageWithLayout } from "~/pages/_app";
 import { prisma } from "~/server/db";
 import { api } from "~/utils/api";
 import { isValidAddress } from "~/web3/utils/address-validator";
@@ -59,7 +59,7 @@ const UserDash: NextPageWithLayout<IPayload> = (props) => {
                     content={el.collection_name ? el.collection_name : el.address}
                     key={i}
                     onClickHandler={() => {
-                      router.push(`/dashboard/collection/${el.address}`);
+                      void router.push(`/dashboard/collection/${el.address}`);
                     }}
                   />
                 ))}
