@@ -51,7 +51,6 @@ const NewCollection: NextPageWithLayout = () => {
     const networkList = networkShortList.map(element => {
       return chainData[element as AvailableNetworkShorts].id;
     });
-    console.log(networkList);
 
     toast.loading("registering collection...", { id: "register_collection" });
     const res = await addCollection({ collectionAddress: address, networks: networkList as AvailableNetworks[] });

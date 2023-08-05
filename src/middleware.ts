@@ -7,7 +7,6 @@ const dashPaths = ["collections", "broadcast"];
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  console.log(path);
 
   const session = request.cookies.get("_session")?.value;
 

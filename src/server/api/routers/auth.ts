@@ -68,7 +68,6 @@ export const authRouter = createTRPCRouter({
           secure: env.NODE_ENV === "production",
           httpOnly: true,
         });
-        console.log(token);
         return true;
       } catch {
         throw new TRPCError({ code: "PRECONDITION_FAILED" });
