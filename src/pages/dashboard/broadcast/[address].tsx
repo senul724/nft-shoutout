@@ -50,7 +50,7 @@ const Broadcast: NextPageWithLayout<IPayload> = (props) => {
                     ))}
                   </>
                 )
-                : <Card content="No collections to receive messages" />}
+                : <Card content="You have not registered any collection to boradcast" />}
             </div>
             <div
               className="p-4 mt-10 w-1/2 text-2xl font-bold text-center text-emerald-600 rounded-xl border border-emerald-600 shadow-lg hover:scale-105 bg-whte"
