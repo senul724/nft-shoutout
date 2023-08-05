@@ -84,7 +84,7 @@ const NewCollection: NextPageWithLayout = () => {
                 touched={touched.address}
               />
               <h5 className="mt-10 mb-3 text-base font-semibold text-gray-900 md:text-xl">
-                Network(s) that the colection is on Select networks
+                Network(s) that the colection is on
               </h5>
               <ul className="my-4 space-y-3">
                 <li>

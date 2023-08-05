@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwt_key } from "./utils/phrase_formatter";
 
-const dashPaths = ["collections", "broadcast"];
+const dashPaths = ["collections", "broadcast", "new"];
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -36,6 +36,10 @@ export async function middleware(request: NextRequest) {
     if (!collections.includes(reqAddress ?? "")) {
       return NextResponse.redirect(new URL("/", request.url));
     }
+    return NextResponse.next();
+  }
+
+  if (path === "/dashboard/new" && session) {
     return NextResponse.next();
   }
 
